@@ -22,7 +22,7 @@ namespace MagicStorageExtra.UI
 		private int cursorPosition;
 		private int cursorTimer;
 		private bool hasFocus;
-		private static readonly Texture2D texture = ModContent.GetTexture("MagicStorageExtra/Assets/SearchBar");
+		private static Texture2D texture = ModContent.GetTexture("MagicStorageExtra/Assets/SearchBar");
 
 		public UISearchBar(LocalizedText defaultText, Action clearedEvent)
 		{
@@ -148,6 +148,8 @@ namespace MagicStorageExtra.UI
 
 		protected override void DrawSelf(SpriteBatch spriteBatch)
 		{
+			if (texture is null || texture.IsDisposed) // TODO this is horrible. Should really make proper UI
+				texture = ModContent.GetTexture("MagicStorageExtra/Assets/SearchBar");
 			CalculatedStyle dim = GetDimensions();
 			int innerWidth = (int) dim.Width - 2 * padding;
 			int innerHeight = (int) dim.Height - 2 * padding;
