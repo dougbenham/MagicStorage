@@ -1,5 +1,5 @@
 author = blushiemagic and wvlad and exterminator
-version = 0.5.4.1
+version = 0.5.4.2
 displayName = Magic Storage - Extra
 homepage = https://github.com/ExterminatorX99/MagicStorageExtra
 hideCode = false
