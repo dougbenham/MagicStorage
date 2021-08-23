@@ -23,13 +23,13 @@ namespace MagicStorageExtra
 		{
 			RecursiveCraftMod = ModLoader.GetMod("RecursiveCraft");
 			if (Enabled)
-				Initialize(); // Move that logic into another method to prevent this.
+				Load_Inner(); // Move that logic into another method to prevent this.
 		}
 
 		// Be aware of inlining. Inlining can happen at the whim of the runtime. Without this Attribute, this mod happens to crash the 2nd time it is loaded on Linux/Mac. (The first call isn't inlined just by chance.) This can cause headaches. 
 		// To avoid TypeInitializationException (or ReflectionTypeLoadException) problems, we need to specify NoInlining on methods like this to prevent inlining (methods containing or accessing Types in the Weakly referenced assembly). 
 		[MethodImpl(MethodImplOptions.NoInlining)]
-		private static void Initialize()
+		private static void Load_Inner()
 		{
 			// This method will only be called when Enable is true, preventing TypeInitializationException
 			Members.recipeCache = new Dictionary<Recipe, RecipeInfo>();
@@ -94,6 +94,7 @@ namespace MagicStorageExtra
 		// As a convention, I rename the .dll file ModName_v1.2.3.4.dll and place them in Mod Sources/Mods/lib. 
 		// I do this for organization and so the .csproj loads properly for others using the GitHub repository. 
 		// Remind contributors to download the referenced mod itself if they wish to build the mod.
+		[MethodImpl(MethodImplOptions.NoInlining)]
 		public static void RecursiveRecipes()
 		{
 			if (Main.rand == null)
@@ -150,11 +151,14 @@ namespace MagicStorageExtra
 			if (recipeInfo != null && recipeInfo.RecipeUsed.Count > 1)
 				Members.recipeCache.Add(recipe, recipeInfo);
 		}
-
+		
+		[MethodImpl(MethodImplOptions.NoInlining)]
 		public static bool IsCompoundRecipe(Recipe recipe) => recipe is CompoundRecipe;
-
+		
+		[MethodImpl(MethodImplOptions.NoInlining)]
 		public static Recipe GetOverriddenRecipe(Recipe recipe) => recipe is CompoundRecipe compound ? compound.OverridenRecipe : recipe;
-
+		
+		[MethodImpl(MethodImplOptions.NoInlining)]
 		public static bool UpdateRecipe(Recipe recipe)
 		{
 			if (recipe is CompoundRecipe compound)
@@ -173,7 +177,8 @@ namespace MagicStorageExtra
 
 			return Members.recipeCache.ContainsKey(recipe);
 		}
-
+		
+		[MethodImpl(MethodImplOptions.NoInlining)]
 		public static Recipe ApplyCompoundRecipe(Recipe recipe)
 		{
 			if (recipe is CompoundRecipe compound)
@@ -187,7 +192,8 @@ namespace MagicStorageExtra
 
 			return recipe;
 		}
-
+		
+		[MethodImpl(MethodImplOptions.NoInlining)]
 		public static Recipe ApplyThreadCompoundRecipe(Recipe recipe)
 		{
 			if (Members.recipeCache.TryGetValue(recipe, out RecipeInfo recipeInfo))
