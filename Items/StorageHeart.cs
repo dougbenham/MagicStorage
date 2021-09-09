@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class StorageHeart : ModItem
+	public class StorageHeart : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -32,17 +32,17 @@ namespace MagicStorageExtra.Items
 			item.createTile = ModContent.TileType<Components.StorageHeart>();
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
-			recipe.AddIngredient(null, "StorageComponent");
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyStorageComponent");
 			recipe.AddRecipeGroup("MagicStorageExtra:AnyDiamond", 2);
 			if (MagicStorageExtra.legendMod is null)
 				recipe.AddIngredient(ItemID.Emerald, 3);
 			else
 				recipe.AddRecipeGroup("MagicStorageExtra:AnyEmerald", 5);
 			recipe.AddTile(TileID.WorkBenches);
-			recipe.SetResult(this);
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

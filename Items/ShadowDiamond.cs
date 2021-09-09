@@ -6,7 +6,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class ShadowDiamond : ModItem
+	public class ShadowDiamond : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{

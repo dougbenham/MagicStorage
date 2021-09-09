@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class UpgradeHallowed : ModItem
+	public class UpgradeHallowed : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -32,7 +32,7 @@ namespace MagicStorageExtra.Items
 			item.value = Item.sellPrice(0, 0, 40);
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
 			recipe.AddIngredient(ItemID.HallowedBar, 10);
@@ -44,7 +44,7 @@ namespace MagicStorageExtra.Items
 			else
 				recipe.AddRecipeGroup("MagicStorageExtra:AnySapphire");
 			recipe.AddTile(TileID.MythrilAnvil);
-			recipe.SetResult(this);
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

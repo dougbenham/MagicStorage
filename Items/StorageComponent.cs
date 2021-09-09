@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class StorageComponent : ModItem
+	public class StorageComponent : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -32,7 +32,7 @@ namespace MagicStorageExtra.Items
 			item.createTile = ModContent.TileType<Components.StorageComponent>();
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
 			recipe.AddIngredient(ItemID.Wood, 10);
@@ -40,7 +40,7 @@ namespace MagicStorageExtra.Items
 			recipe.anyWood = true;
 			recipe.anyIronBar = true;
 			recipe.AddTile(TileID.WorkBenches);
-			recipe.SetResult(this);
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

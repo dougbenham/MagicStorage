@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class StorageUnitTerra : ModItem
+	public class StorageUnitTerra : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -34,12 +34,12 @@ namespace MagicStorageExtra.Items
 			item.placeStyle = 7;
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
-			recipe.AddIngredient(ModContent.ItemType<StorageUnitLuminite>());
-			recipe.AddIngredient(ModContent.ItemType<UpgradeTerra>());
-			recipe.SetResult(this);
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyStorageUnitLuminite");
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyUpgradeTerra");
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

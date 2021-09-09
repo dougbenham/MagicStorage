@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class StorageUnitLuminite : ModItem
+	public class StorageUnitLuminite : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -34,12 +34,12 @@ namespace MagicStorageExtra.Items
 			item.placeStyle = 6;
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
-			recipe.AddIngredient(ModContent.ItemType<StorageUnitBlueChlorophyte>());
-			recipe.AddIngredient(ModContent.ItemType<UpgradeLuminite>());
-			recipe.SetResult(this);
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyStorageUnitBlueChlorophyte");
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyUpgradeLuminite");
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

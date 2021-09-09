@@ -128,27 +128,27 @@ namespace MagicStorageExtra.Items
 				}
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
-			recipe.AddIngredient(mod, "LocatorDisk");
-			recipe.AddIngredient(mod, "RadiantJewel");
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyLocatorDisk");
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyRadiantJewel");
 			recipe.AddRecipeGroup("MagicStorageExtra:AnyDiamond", 3);
 			recipe.AddIngredient(ItemID.Ruby, 7);
 			recipe.AddTile(TileID.LunarCraftingStation);
-			recipe.SetResult(this);
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 
 			Mod otherMod = MagicStorageExtra.bluemagicMod;
 			if (otherMod != null)
 			{
 				recipe = new ModRecipe(mod);
-				recipe.AddIngredient(mod, "LocatorDisk");
+				recipe.AddRecipeGroup("MagicStorageExtra:AnyLocatorDisk");
 				recipe.AddIngredient(otherMod, "InfinityCrystal");
 				recipe.AddRecipeGroup("MagicStorageExtra:AnyDiamond", 3);
 				recipe.AddIngredient(ItemID.Ruby, 7);
 				recipe.AddTile(otherMod, "PuriumAnvil");
-				recipe.SetResult(this);
+				recipe.SetResult(result);
 				recipe.AddRecipe();
 			}
 
@@ -156,12 +156,12 @@ namespace MagicStorageExtra.Items
 			if (otherMod != null)
 			{
 				recipe = new ModRecipe(mod);
-				recipe.AddIngredient(mod, "LocatorDisk");
+				recipe.AddRecipeGroup("MagicStorageExtra:AnyLocatorDisk");
 				recipe.AddIngredient(otherMod, "CosmiliteBar", 20);
 				recipe.AddRecipeGroup("MagicStorageExtra:AnyDiamond", 3);
 				recipe.AddIngredient(ItemID.Ruby, 7);
 				recipe.AddTile(TileID.LunarCraftingStation);
-				recipe.SetResult(this);
+				recipe.SetResult(result);
 				recipe.AddRecipe();
 			}
 		}

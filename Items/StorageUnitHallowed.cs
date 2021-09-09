@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class StorageUnitHallowed : ModItem
+	public class StorageUnitHallowed : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -34,12 +34,12 @@ namespace MagicStorageExtra.Items
 			item.placeStyle = 4;
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
-			recipe.AddIngredient(ModContent.ItemType<StorageUnitHellstone>());
-			recipe.AddIngredient(ModContent.ItemType<UpgradeHallowed>());
-			recipe.SetResult(this);
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyStorageUnitHellstone");
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyUpgradeHallowed");
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

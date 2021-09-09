@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class StorageUnit : ModItem
+	public class StorageUnit : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -32,22 +32,22 @@ namespace MagicStorageExtra.Items
 			item.createTile = ModContent.TileType<Components.StorageUnit>();
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
-			recipe.AddIngredient(ModContent.ItemType<StorageComponent>());
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyStorageComponent");
 			recipe.AddRecipeGroup("MagicStorageExtra:AnyChest");
 			recipe.AddIngredient(ItemID.SilverBar, 10);
 			recipe.AddTile(TileID.WorkBenches);
-			recipe.SetResult(this);
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 
 			recipe = new ModRecipe(mod);
-			recipe.AddIngredient(ModContent.ItemType<StorageComponent>());
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyStorageComponent");
 			recipe.AddRecipeGroup("MagicStorageExtra:AnyChest");
 			recipe.AddIngredient(ItemID.TungstenBar, 10);
 			recipe.AddTile(TileID.WorkBenches);
-			recipe.SetResult(this);
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

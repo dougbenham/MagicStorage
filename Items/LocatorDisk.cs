@@ -33,13 +33,13 @@ namespace MagicStorageExtra.Items
 			item.value = Item.sellPrice(0, 5);
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
 			recipe.AddIngredient(ItemID.MartianConduitPlating, 25);
 			recipe.AddIngredient(ItemID.LunarBar, 2);
 			recipe.AddTile(TileID.LunarCraftingStation);
-			recipe.SetResult(this);
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

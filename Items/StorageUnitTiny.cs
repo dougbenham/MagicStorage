@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class StorageUnitTiny : ModItem
+	public class StorageUnitTiny : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{

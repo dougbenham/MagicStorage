@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class StorageUnitDemonite : ModItem
+	public class StorageUnitDemonite : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -34,12 +34,12 @@ namespace MagicStorageExtra.Items
 			item.placeStyle = 1;
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
-			recipe.AddIngredient(ModContent.ItemType<StorageUnit>());
-			recipe.AddIngredient(ModContent.ItemType<UpgradeDemonite>());
-			recipe.SetResult(this);
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyStorageUnit");
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyUpgradeDemonite");
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

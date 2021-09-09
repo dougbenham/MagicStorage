@@ -9,7 +9,7 @@ using Terraria.ModLoader.IO;
 
 namespace MagicStorageExtra.Items
 {
-	public class Locator : ModItem
+	public class Locator : StorageItem
 	{
 		public Point16 location = new Point16(-1, -1);
 
@@ -55,13 +55,13 @@ namespace MagicStorageExtra.Items
 				}
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
 			recipe.AddIngredient(ItemID.MeteoriteBar, 10);
 			recipe.AddIngredient(ItemID.Amber, 2);
 			recipe.AddTile(TileID.Anvils);
-			recipe.SetResult(this);
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 

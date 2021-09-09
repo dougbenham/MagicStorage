@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class StorageUnitHellstone : ModItem
+	public class StorageUnitHellstone : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -34,18 +34,18 @@ namespace MagicStorageExtra.Items
 			item.placeStyle = 3;
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
-			recipe.AddIngredient(ModContent.ItemType<StorageUnitDemonite>());
-			recipe.AddIngredient(ModContent.ItemType<UpgradeHellstone>());
-			recipe.SetResult(this);
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyStorageUnitDemonite");
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyUpgradeHellstone");
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 
 			recipe = new ModRecipe(mod);
-			recipe.AddIngredient(ModContent.ItemType<StorageUnitCrimtane>());
-			recipe.AddIngredient(ModContent.ItemType<UpgradeHellstone>());
-			recipe.SetResult(this);
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyStorageUnitCrimtane");
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyUpgradeHellstone");
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

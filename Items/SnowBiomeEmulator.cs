@@ -6,7 +6,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class SnowBiomeEmulator : ModItem
+	public class SnowBiomeEmulator : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -34,12 +34,12 @@ namespace MagicStorageExtra.Items
 			item.rare = ItemRarityID.Blue;
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
 			recipe.AddRecipeGroup("MagicStorageExtra:AnySnowBiomeBlock", 300);
 			recipe.AddTile(null, "CraftingAccess");
-			recipe.SetResult(this);
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

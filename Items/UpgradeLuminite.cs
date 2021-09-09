@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class UpgradeLuminite : ModItem
+	public class UpgradeLuminite : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -33,7 +33,7 @@ namespace MagicStorageExtra.Items
 			item.value = Item.sellPrice(0, 1, 50);
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
 			recipe.AddIngredient(ItemID.LunarBar, 10);
@@ -46,7 +46,7 @@ namespace MagicStorageExtra.Items
 			else
 				recipe.AddRecipeGroup("MagicStorageExtra:AnyRuby");
 			recipe.AddTile(TileID.LunarCraftingStation);
-			recipe.SetResult(this);
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

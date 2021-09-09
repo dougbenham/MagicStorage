@@ -7,7 +7,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class StorageDeactivator : ModItem
+	public class StorageDeactivator : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -70,13 +70,13 @@ namespace MagicStorageExtra.Items
 			return true;
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
 			recipe.AddIngredient(ItemID.ActuationRod);
-			recipe.AddIngredient(null, "StorageComponent");
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyStorageComponent");
 			recipe.AddTile(TileID.Anvils);
-			recipe.SetResult(this);
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

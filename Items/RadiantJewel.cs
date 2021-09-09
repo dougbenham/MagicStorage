@@ -6,7 +6,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class RadiantJewel : ModItem
+	public class RadiantJewel : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{

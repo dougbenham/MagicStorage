@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class UpgradeCrimtane : ModItem
+	public class UpgradeCrimtane : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -33,7 +33,7 @@ namespace MagicStorageExtra.Items
 			item.value = Item.sellPrice(0, 0, 32);
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
 			recipe.AddIngredient(ItemID.CrimtaneBar, 10);
@@ -42,7 +42,7 @@ namespace MagicStorageExtra.Items
 			else
 				recipe.AddRecipeGroup("MagicStorageExtra:AnyAmethyst");
 			recipe.AddTile(TileID.Anvils);
-			recipe.SetResult(this);
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

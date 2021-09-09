@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class UpgradeBlueChlorophyte : ModItem
+	public class UpgradeBlueChlorophyte : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -33,7 +33,7 @@ namespace MagicStorageExtra.Items
 			item.value = Item.sellPrice(0, 1);
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
 			recipe.AddIngredient(ItemID.ShroomiteBar, 5);
@@ -44,7 +44,7 @@ namespace MagicStorageExtra.Items
 			else
 				recipe.AddRecipeGroup("MagicStorageExtra:AnyEmerald");
 			recipe.AddTile(TileID.MythrilAnvil);
-			recipe.SetResult(this);
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}

@@ -5,7 +5,7 @@ using Terraria.ModLoader;
 
 namespace MagicStorageExtra.Items
 {
-	public class StorageUnitCrimtane : ModItem
+	public class StorageUnitCrimtane : StorageItem
 	{
 		public override void SetStaticDefaults()
 		{
@@ -34,12 +34,12 @@ namespace MagicStorageExtra.Items
 			item.placeStyle = 2;
 		}
 
-		public override void AddRecipes()
+		public override void AddRecipe(ModItem result)
 		{
 			var recipe = new ModRecipe(mod);
-			recipe.AddIngredient(ModContent.ItemType<StorageUnit>());
-			recipe.AddIngredient(ModContent.ItemType<UpgradeCrimtane>());
-			recipe.SetResult(this);
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyStorageUnit");
+			recipe.AddRecipeGroup("MagicStorageExtra:AnyUpgradeCrimtane");
+			recipe.SetResult(result);
 			recipe.AddRecipe();
 		}
 	}
