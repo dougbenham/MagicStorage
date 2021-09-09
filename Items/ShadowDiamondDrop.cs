@@ -8,6 +8,9 @@ namespace MagicStorageExtra.Items
 	{
 		public override void NPCLoot(NPC npc)
 		{
+			if (MagicStorageExtra.MagicStorage != null)
+				return;
+
 			switch (npc.type)
 			{
 				case NPCID.KingSlime when !StorageWorld.kingSlimeDiamond:
