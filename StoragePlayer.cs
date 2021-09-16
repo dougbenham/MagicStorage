@@ -134,8 +134,8 @@ namespace MagicStorageExtra
 
 			if (MagicStorageConfig.ClearSearchText)
 			{
-				StorageGUI.searchBar.Reset();
-				CraftingGUI.searchBar.Reset();
+				StorageGUI.searchBar?.Reset();
+				CraftingGUI.searchBar?.Reset();
 			}
 
 			StorageGUI.RefreshItems();
