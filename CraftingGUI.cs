@@ -46,7 +46,7 @@ namespace MagicStorageExtra
 		private static float panelHeight;
 
 		private static UIElement topBar;
-		private static UISearchBar searchBar;
+		public static UISearchBar searchBar;
 		private static UIButtonChoice sortButtons;
 		internal static UIButtonChoice recipeButtons;
 		private static UIElement topBar2;
