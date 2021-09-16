@@ -17,6 +17,9 @@ Blacklist/Whitelist for specific accesses
 Wait for bug reports
 
 Changelog:
+0.5.5.5:
+ - Items of same type and prefix stack together
+ - Bug fix
 0.5.5.3:
  - Added config to clear search text
 0.5.4.1:

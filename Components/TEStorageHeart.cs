@@ -33,7 +33,13 @@ namespace MagicStorageExtra.Components
 
 		public IEnumerable<TEAbstractStorageUnit> GetStorageUnits()
 		{
-			return storageUnits.Concat(remoteAccesses.Where(remoteAccess => ByPosition.ContainsKey(remoteAccess) && ByPosition[remoteAccess] is TERemoteAccess).SelectMany(remoteAccess => ((TERemoteAccess) ByPosition[remoteAccess]).storageUnits)).Where(storageUnit => ByPosition.ContainsKey(storageUnit) && ByPosition[storageUnit] is TEAbstractStorageUnit).Select(storageUnit => (TEAbstractStorageUnit) ByPosition[storageUnit]);
+			IEnumerable<Point16> remoteStorageUnits = remoteAccesses.Select(remoteAccess => ByPosition.TryGetValue(remoteAccess, out TileEntity te) ? te : null)
+				.OfType<TERemoteAccess>()
+				.SelectMany(remoteAccess => remoteAccess.storageUnits);
+
+			return storageUnits.Concat(remoteStorageUnits)
+				.Select(storageUnit => ByPosition.TryGetValue(storageUnit, out TileEntity te) ? te : null)
+				.OfType<TEAbstractStorageUnit>();
 		}
 
 		public IEnumerable<Item> GetStoredItems()

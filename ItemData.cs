@@ -1,8 +1,9 @@
+using System;
 using Terraria;
 
 namespace MagicStorageExtra
 {
-	public struct ItemData
+	public struct ItemData : IComparable<ItemData>
 	{
 		public readonly int Type;
 		public readonly int Prefix;
@@ -19,21 +20,24 @@ namespace MagicStorageExtra
 			Prefix = item.prefix;
 		}
 
-		public override bool Equals(object other) => other is ItemData data && Matches(this, data);
+		public bool Equals(ItemData other) => Type == other.Type && Prefix == other.Prefix;
 
-		public override int GetHashCode() => 100 * Type + Prefix;
+		public override bool Equals(object obj) => obj is ItemData other && Equals(other);
 
-		public static bool Matches(Item item1, Item item2) => Matches(new ItemData(item1), new ItemData(item2));
+		public override int GetHashCode() => Type * 397 + Prefix;
 
-		public static bool Matches(ItemData data1, ItemData data2) => data1.Type == data2.Type && data1.Prefix == data2.Prefix;
+		public static bool operator ==(ItemData left, ItemData right) => left.Equals(right);
 
-		public static int Compare(Item item1, Item item2)
+		public static bool operator !=(ItemData left, ItemData right) => !left.Equals(right);
+
+		public static bool Matches(Item item1, Item item2) => new ItemData(item1) == new ItemData(item2);
+
+		public int CompareTo(ItemData other)
 		{
-			var data1 = new ItemData(item1);
-			var data2 = new ItemData(item2);
-			if (data1.Type != data2.Type)
-				return data1.Type - data2.Type;
-			return data1.Prefix - data2.Prefix;
+			int typeComparison = Type.CompareTo(other.Type);
+			if (typeComparison != 0)
+				return typeComparison;
+			return Prefix.CompareTo(other.Prefix);
 		}
 	}
 }
