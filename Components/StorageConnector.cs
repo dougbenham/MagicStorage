@@ -15,6 +15,7 @@ namespace MagicStorageExtra.Components
 		{
 			Main.tileSolid[Type] = false;
 			TileObjectData.newTile.CopyFrom(TileObjectData.Style1x1);
+			TileObjectData.newTile.Origin = new Point16(0, 0);
 			TileObjectData.newTile.AnchorBottom = new AnchorData(AnchorType.EmptyTile, TileObjectData.newTile.Width, 0);
 			TileObjectData.newTile.LavaDeath = false;
 			TileObjectData.newTile.HookCheck = new PlacementHook(CanPlace, -1, 0, true);
@@ -27,7 +28,7 @@ namespace MagicStorageExtra.Components
 			drop = ModContent.ItemType<Items.StorageConnector>();
 		}
 
-		public int CanPlace(int i, int j, int type, int style, int direction)
+		public static int CanPlace(int i, int j, int type, int style, int direction)
 		{
 			int count = 0;
 

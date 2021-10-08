@@ -17,6 +17,7 @@ namespace MagicStorageExtra
 		public static Mod bluemagicMod;
 		public static Mod legendMod;
 		public static Mod MagicStorage;
+		public static Mod ItemChecklist;
 
 		public static string GithubUserName => "ExterminatorX99";
 		public static string GithubProjectName => "MagicStorageExtra";
@@ -34,6 +35,7 @@ namespace MagicStorageExtra
 			legendMod = ModLoader.GetMod("LegendOfTerraria3");
 			bluemagicMod = ModLoader.GetMod("Bluemagic");
 			MagicStorage = ModLoader.GetMod("MagicStorage");
+			ItemChecklist = ModLoader.GetMod("ItemChecklist");
 			AddTranslations();
 			AddGlobalItem("MagicStorageExtraItemSaveLoadHook", new ItemSaveLoadHook());
 			IsItemKnownHotKey = RegisterHotKey("Is This Item Known?", "");

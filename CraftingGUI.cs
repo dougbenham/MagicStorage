@@ -33,7 +33,6 @@ namespace MagicStorageExtra
 		private const int startMaxRightClickTimer = 20;
 
 		private static HashSet<int> threadCheckListFoundItems;
-		private static Mod _checkListMod;
 		private static volatile bool wasItemChecklistRetrieved;
 
 		private static MouseState curMouse;
@@ -122,7 +121,7 @@ namespace MagicStorageExtra
 		private static List<Recipe> nextRecipes = new List<Recipe>();
 		private static List<bool> nextRecipeAvailable = new List<bool>();
 
-		private static Dictionary<int, List<Recipe>> _productToRecipes;
+		private static Dictionary<int, Recipe[]> _productToRecipes;
 		public static bool compoundCrafting;
 		public static List<Item> compoundCraftSurplus = new List<Item>();
 		private static MethodInfo _getAcceptedGroups;
@@ -945,23 +944,24 @@ namespace MagicStorageExtra
 
 		private static IEnumerable<int> RetrieveFoundItemsCheckList()
 		{
-			if (_checkListMod == null)
-				_checkListMod = ModLoader.GetMod("ItemChecklist");
+			Mod itemChecklist = MagicStorageExtra.ItemChecklist;
+			if (itemChecklist is null || !(itemChecklist.Call("RequestFoundItems") is bool[] foundItems))
+				return Enumerable.Empty<int>();
 
-			object response = _checkListMod?.Call("RequestFoundItems");
-			bool[] foundItems = response is bool[] found ? found : new bool[0];
 			if (foundItems.Length > 0)
 				wasItemChecklistRetrieved = true;
-			return foundItems.Select((v, type) => new {WasFound = v, type}).Where(x => x.WasFound).Select(x => x.type);
+
+			return foundItems.Select((found, type) => (found, type)).Where(x => x.found).Select(x => x.type);
 		}
 
 		private static void EnsureProductToRecipesInited()
 		{
-			if (_productToRecipes == null)
-			{
-				Recipe[] allRecipes = ItemSorter.GetRecipes(SortMode.Id, FilterMode.All, ModSearchBox.ModIndexAll, "").Where(x => x?.createItem != null && x.createItem.type > ItemID.None).ToArray();
-				_productToRecipes = allRecipes.GroupBy(x => x.createItem.type).ToDictionary(x => x.Key, x => x.ToList());
-			}
+			if (!(_productToRecipes is null))
+				return;
+
+			IEnumerable<Recipe> allRecipes = ItemSorter.GetRecipes(SortMode.Id, FilterMode.All, ModSearchBox.ModIndexAll, "")
+				.Where(r => r?.createItem != null && r.createItem.type > ItemID.None);
+			_productToRecipes = allRecipes.GroupBy(r => r.createItem.type).ToDictionary(x => x.Key, x => x.ToArray());
 		}
 
 		/// <summary>
@@ -1033,9 +1033,9 @@ namespace MagicStorageExtra
 				return false;
 			try
 			{
-				if (!_productToRecipes.TryGetValue(t, out List<Recipe> ingredientRecipes))
+				if (!_productToRecipes.TryGetValue(t, out Recipe[] ingredientRecipes))
 					return false;
-				if (ingredientRecipes.Count == 0 || ingredientRecipes.All(x => !IsKnownRecursively(x, availableSet, recursionTree, cache)))
+				if (ingredientRecipes.Length == 0 || ingredientRecipes.All(x => !IsKnownRecursively(x, availableSet, recursionTree, cache)))
 					return false;
 			}
 			finally
@@ -1594,7 +1594,7 @@ namespace MagicStorageExtra
 				{
 					Item item = selectedRecipe.requiredItem[slot];
 					EnsureProductToRecipesInited();
-					if (_productToRecipes.TryGetValue(item.type, out List<Recipe> itemRecipes))
+					if (_productToRecipes.TryGetValue(item.type, out Recipe[] itemRecipes))
 					{
 						HashSet<int> knownItems = GetKnownItems();
 

@@ -22,6 +22,7 @@ namespace MagicStorageExtra.Components
 			Main.tileFrameImportant[Type] = true;
 
 			TileObjectData.newTile.CopyFrom(TileObjectData.Style2x2);
+			TileObjectData.newTile.Origin = new Point16(1, 1);
 			TileObjectData.newTile.LavaDeath = false;
 			TileObjectData.newTile.HookCheck = new PlacementHook(CanPlace, -1, 0, true);
 			ModifyObjectData();
@@ -34,7 +35,7 @@ namespace MagicStorageExtra.Components
 			TileObjectData.newAlternate.CopyFrom(TileObjectData.newTile);
 			TileObjectData.newAlternate.AnchorBottom = AnchorData.Empty;
 			TileObjectData.addAlternate(0);
-			
+
 			TileObjectData.addTile(Type);
 
 			ModTranslation text = CreateMapEntryName();
