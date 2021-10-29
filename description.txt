@@ -17,6 +17,10 @@ Blacklist/Whitelist for specific accesses
 Wait for bug reports
 
 Changelog:
+0.5.5.9:
+Add config option to toggle the dps tooltip
+0.5.5.8:
+Fix bug that prevented the placement of Storage Connector above blocks
 0.5.5.7:
  - Fix bug that prevented placing storage tiles onto blocks
 0.5.5.6:

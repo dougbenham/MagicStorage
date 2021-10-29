@@ -9,6 +9,9 @@ namespace MagicStorageExtra
 	{
 		public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
 		{
+			if (!MagicStorageConfig.ShowItemDps)
+				return;
+
 			double dps = CompareDps.GetDps(item);
 			if (dps > 1f)
 				tooltips.Add(new TooltipLine(MagicStorageExtra.Instance, "DPS", dps.ToString("F") + " DPS"));

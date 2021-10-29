@@ -35,6 +35,11 @@ namespace MagicStorageExtra
 		[DefaultValue(false)]
 		public bool clearSearchText;
 
+		[Label("Show estimated item dps")]
+		[Tooltip("Enable to show the estimated dps of the item as a tooltip")]
+		[DefaultValue(true)]
+		public bool showItemDps;
+
 		public static MagicStorageConfig Instance => ModContent.GetInstance<MagicStorageConfig>();
 
 		[JsonIgnore] public static bool GlowNewItems => Instance.glowNewItems;
@@ -46,6 +51,8 @@ namespace MagicStorageExtra
 		[JsonIgnore] public static bool QuickStackDepositMode => Instance.quickStackDepositMode;
 
 		[JsonIgnore] public static bool ClearSearchText => Instance.clearSearchText;
+
+		[JsonIgnore] public static bool ShowItemDps => Instance.showItemDps;
 
 		public override ConfigScope Mode => ConfigScope.ClientSide;
 	}
