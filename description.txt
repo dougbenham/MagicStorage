@@ -17,6 +17,8 @@ Blacklist/Whitelist for specific accesses
 Wait for bug reports
 
 Changelog:
+0.5.5.10:
+Fix Linux issues - fuck Mono
 0.5.5.9:
 Add config option to toggle the dps tooltip
 0.5.5.8:
