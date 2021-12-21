@@ -108,10 +108,11 @@ namespace MagicStorageExtra
 			if (storedItems == null)
 				return;
 
-			lock ((Dictionary<Recipe, RecipeInfo>)Members.recipeCache)
+			var recipeCache = (Dictionary<Recipe, RecipeInfo>)Members.recipeCache;
+			lock (recipeCache)
 			{
 				var recursiveSearch = new RecursiveSearch(storedItems, GuiAsCraftingSource());
-				((Dictionary<Recipe, RecipeInfo>)Members.recipeCache).Clear();
+				recipeCache.Clear();
 				foreach (int i in RecursiveCraft.RecursiveCraft.SortedRecipeList)
 				{
 					Recipe recipe = Main.recipe[i];
@@ -158,7 +159,10 @@ namespace MagicStorageExtra
 			}
 
 			if (recipeInfo != null && recipeInfo.RecipeUsed.Count > 1)
-				((Dictionary<Recipe, RecipeInfo>)Members.recipeCache).Add(recipe, recipeInfo);
+			{
+				var recipeCache = (Dictionary<Recipe, RecipeInfo>)Members.recipeCache;
+				recipeCache.Add(recipe, recipeInfo);
+			}
 		}
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
@@ -176,15 +180,17 @@ namespace MagicStorageExtra
 				return false;
 
 			Dictionary<int, int> storedItems = GetStoredItems();
+			var recipeCache = (Dictionary<Recipe, RecipeInfo>)Members.recipeCache;
+
 			if (storedItems != null)
-				lock ((Dictionary<Recipe, RecipeInfo>)Members.recipeCache)
+				lock (recipeCache)
 				{
-					((Dictionary<Recipe, RecipeInfo>)Members.recipeCache).Remove(recipe);
+					recipeCache.Remove(recipe);
 					var recursiveSearch = new RecursiveSearch(storedItems, GuiAsCraftingSource());
 					SingleSearch(recursiveSearch, recipe);
 				}
 
-			return ((Dictionary<Recipe, RecipeInfo>)Members.recipeCache).ContainsKey(recipe);
+			return recipeCache.ContainsKey(recipe);
 		}
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
@@ -192,11 +198,16 @@ namespace MagicStorageExtra
 		{
 			if (recipe is CompoundRecipe compound)
 				recipe = compound.OverridenRecipe;
-			if (((Dictionary<Recipe, RecipeInfo>)Members.recipeCache).TryGetValue(recipe, out RecipeInfo recipeInfo))
+
+			var recipeCache = (Dictionary<Recipe, RecipeInfo>)Members.recipeCache;
+
+			if (recipeCache.TryGetValue(recipe, out RecipeInfo recipeInfo))
 			{
 				int index = Array.IndexOf(Main.recipe, recipe);
-				((CompoundRecipe)Members.compoundRecipe).Apply(index, recipeInfo);
-				return (CompoundRecipe)Members.compoundRecipe;
+				var compoundRecipe = (CompoundRecipe)Members.compoundRecipe;
+
+				compoundRecipe.Apply(index, recipeInfo);
+				return compoundRecipe;
 			}
 
 			return recipe;
@@ -205,11 +216,15 @@ namespace MagicStorageExtra
 		[MethodImpl(MethodImplOptions.NoInlining)]
 		public static Recipe ApplyThreadCompoundRecipe(Recipe recipe)
 		{
-			if (((Dictionary<Recipe, RecipeInfo>)Members.recipeCache).TryGetValue(recipe, out RecipeInfo recipeInfo))
+			var recipeCache = (Dictionary<Recipe, RecipeInfo>)Members.recipeCache;
+
+			if (recipeCache.TryGetValue(recipe, out RecipeInfo recipeInfo))
 			{
 				int index = Array.IndexOf(Main.recipe, recipe);
-				((CompoundRecipe)Members.threadCompoundRecipe).Apply(index, recipeInfo);
-				return (CompoundRecipe)Members.threadCompoundRecipe;
+				var threadCompoundRecipe = (CompoundRecipe)Members.threadCompoundRecipe;
+
+				threadCompoundRecipe.Apply(index, recipeInfo);
+				return threadCompoundRecipe;
 			}
 
 			return recipe;
