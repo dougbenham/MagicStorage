@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using MagicStorage.Components;
 using MagicStorage.Items;
 using MagicStorage.Sorting;
@@ -39,7 +39,7 @@ namespace MagicStorage
 		private const float ScrollBar2ViewSize = 1f;
 		private const float RecipeScrollBarViewSize = 1f;
 
-		private static HashSet<int> threadCheckListFoundItems;
+		private static HashSet<int> ItemChecklistFoundItems;
 		private static Mod itemChecklistMod;
 		private static volatile bool wasItemChecklistRetrieved;
 
@@ -118,16 +118,8 @@ namespace MagicStorage
 
 		private static int maxRightClickTimer = StartMaxRightClickTimer;
 
-		private static readonly object threadLock = new();
-		private static readonly object recipeLock = new();
-		private static bool threadRunning;
-		private static bool threadNeedsRestart;
-		private static SortMode threadSortMode;
-		private static FilterMode threadFilterMode;
-		private static readonly List<Recipe> threadRecipes = new();
-		private static readonly List<bool> threadRecipeAvailable = new();
-		private static List<Recipe> nextRecipes = new();
-		private static List<bool> nextRecipeAvailable = new();
+		private static SortMode sortMode;
+		private static FilterMode filterMode;
 
 		private static Dictionary<int, List<Recipe>> _productToRecipes;
 		public static bool compoundCrafting;
@@ -148,12 +140,6 @@ namespace MagicStorage
 
 		public static void Initialize()
 		{
-			lock (recipeLock)
-			{
-				recipes = nextRecipes;
-				recipeAvailable = nextRecipeAvailable;
-			}
-
 			InitLangStuff();
 			float itemSlotWidth = TextureAssets.InventoryBack.Value.Width * InventoryScale;
 			float itemSlotHeight = TextureAssets.InventoryBack.Value.Height * InventoryScale;
@@ -485,18 +471,20 @@ namespace MagicStorage
 
 				basePanel.Draw(Main.spriteBatch);
 				recipePanel.Draw(Main.spriteBatch);
-				Vector2 pos = recipeZone.GetDimensions().Position();
-				if (threadRunning)
-					Utils.DrawBorderString(Main.spriteBatch, "Loading", pos + new Vector2(8f, 8f), Color.White);
+
 				stationZone.DrawText();
 				recipeZone.DrawText();
+
 				ingredientZone.DrawText();
 				recipeHeaderZone.DrawText();
+
 				storageZone.DrawText();
 				resultZone.DrawText();
+
 				sortButtons.DrawText();
 				recipeButtons.DrawText();
 				filterButtons.DrawText();
+
 				DrawCraftButton();
 			}
 			catch (Exception e)
@@ -525,8 +513,6 @@ namespace MagicStorage
 
 		private static Item GetRecipe(int slot, ref int context)
 		{
-			if (threadRunning)
-				return new Item();
 			int index = slot + RecipeColumns * (int)Math.Round(recipeScrollBar.ViewPosition);
 			Item item = index < recipes.Count ? recipes[index].createItem : new Item();
 			if (!item.IsAir)
@@ -635,7 +621,7 @@ namespace MagicStorage
 			int maxCraftable = int.MaxValue;
 
 			if (RecursiveCraftIntegration.Enabled)
-				recipe = RecursiveCraftIntegration.ApplyThreadCompoundRecipe(recipe);
+				recipe = RecursiveCraftIntegration.ApplyCompoundRecipe(recipe);
 
 			int GetAmountCraftable(Item requiredItem)
 			{
@@ -699,7 +685,7 @@ namespace MagicStorage
 					isEmpty = false;
 				}
 
-				foreach (int tile in selectedRecipe.requiredTile.TakeWhile(tile => tile != -1))
+				foreach (int tile in selectedRecipe.requiredTile)
 					AddText(Lang.GetMapObjectName(MapHelper.TileToLookup(tile, 0)));
 
 				if (selectedRecipe.HasCondition(Recipe.Condition.NearWater))
@@ -816,14 +802,19 @@ namespace MagicStorage
                         {
                             TryCraft();
                             if (RecursiveCraftIntegration.Enabled)
-                                if (RecursiveCraftIntegration.UpdateRecipe(selectedRecipe))
+                            {
+                                RecursiveCraftIntegration.RefreshRecursiveRecipes();
+                                if (RecursiveCraftIntegration.HasCompoundVariant(selectedRecipe))
                                     SetSelectedRecipe(selectedRecipe);
+                            }
+
                             RefreshItems();
                         }
                         SoundEngine.PlaySound(SoundID.Grab);
                     }
                     else
                     {
+
                         if (craftTimer <= 0)
                         {
                             craftTimer = maxCraftTimer;
@@ -834,8 +825,12 @@ namespace MagicStorage
 
                             TryCraft();
                             if (RecursiveCraftIntegration.Enabled)
-                                if (RecursiveCraftIntegration.UpdateRecipe(selectedRecipe))
+                            {
+                                RecursiveCraftIntegration.RefreshRecursiveRecipes();
+                                if (RecursiveCraftIntegration.HasCompoundVariant(selectedRecipe))
                                     SetSelectedRecipe(selectedRecipe);
+                            }
+
                             RefreshItems();
                             SoundEngine.PlaySound(SoundID.Grab);
                         }
@@ -937,19 +932,11 @@ namespace MagicStorage
 			var favoritesCopy = new HashSet<int>(modPlayer.FavoritedRecipes.Items.Select(x => x.type));
 
 			EnsureProductToRecipesInited();
-			threadRecipes.Clear();
-			lock (threadLock)
-			{
-				threadNeedsRestart = true;
-				threadSortMode = (SortMode)sortButtons.Choice;
-				threadFilterMode = (FilterMode)filterButtons.Choice;
-				threadCheckListFoundItems = foundItems;
-				if (!threadRunning)
-				{
-					threadRunning = true;
-					Task.Run(() => RefreshRecipes(hiddenRecipes, craftedRecipes, favoritesCopy));
-				}
-			}
+
+			sortMode = (SortMode) sortButtons.Choice;
+			filterMode = (FilterMode) filterButtons.Choice;
+			ItemChecklistFoundItems = foundItems;
+			RefreshRecipes(hiddenRecipes, craftedRecipes, favoritesCopy);
 		}
 
 		public static HashSet<int> GetKnownItems()
@@ -963,7 +950,7 @@ namespace MagicStorage
 
 		private static void GetKnownItems(out HashSet<int> foundItems, out HashSet<int> hiddenRecipes, out HashSet<int> craftedRecipes, out HashSet<int> asKnownRecipes)
 		{
-			foundItems = new HashSet<int>(RetrieveFoundItemsCheckList());
+			foundItems = new HashSet<int>(RetrieveFoundItemsChecklist());
 
 			StoragePlayer modPlayer = StoragePlayer.LocalPlayer;
 			hiddenRecipes = new HashSet<int>(modPlayer.HiddenRecipes.Select(x => x.type));
@@ -971,7 +958,7 @@ namespace MagicStorage
 			asKnownRecipes = new HashSet<int>(modPlayer.AsKnownRecipes.Items.Select(x => x.type));
 		}
 
-		private static IEnumerable<int> RetrieveFoundItemsCheckList()
+		private static IEnumerable<int> RetrieveFoundItemsChecklist()
 		{
 			if (itemChecklistMod is null)
 				ModLoader.TryGetMod("ItemChecklist", out itemChecklistMod);
@@ -993,7 +980,7 @@ namespace MagicStorage
 				return;
 
 			IEnumerable<Recipe> allRecipes = ItemSorter.GetRecipes(SortMode.Id, FilterMode.All, ModSearchBox.ModIndexAll, "")
-				.Where(x => x?.createItem is not null && x.createItem.type > ItemID.None);
+				.Where(x => x.createItem.type > ItemID.None);
 			_productToRecipes = allRecipes.GroupBy(x => x.createItem.type).ToDictionary(x => x.Key, x => x.ToList());
 		}
 
@@ -1005,7 +992,7 @@ namespace MagicStorage
 			if (cache.TryGetValue(recipe, out bool v))
 				return v;
 
-			foreach (int tile in recipe.requiredTile.TakeWhile(tile => tile != -1))
+			foreach (int tile in recipe.requiredTile)
 			{
 				if (!StorageWorld.TileToCreatingItem.TryGetValue(tile, out List<int> possibleItems))
 					continue;
@@ -1077,153 +1064,115 @@ namespace MagicStorage
 
 		private static void RefreshRecipes(HashSet<int> hiddenRecipes, HashSet<int> craftedRecipes, HashSet<int> favorited)
 		{
-			while (true)
-				try
+			try
+			{
+				var availableItemsMutable = new HashSet<int>(hiddenRecipes.Concat(craftedRecipes).Concat(ItemChecklistFoundItems));
+
+				var temp = new HashSet<int>();
+				var tempCache = new Dictionary<Recipe, bool>();
+
+				int modFilterIndex = modSearchBox.ModIndex;
+
+				void DoFiltering()
 				{
-					SortMode sortMode;
-					FilterMode filterMode;
-					HashSet<int> foundItems;
-					lock (threadLock)
+					var filteredRecipes = ItemSorter.GetRecipes(sortMode, filterMode, modFilterIndex, searchBar.Text)
+						// show only blacklisted recipes only if choice = 2, otherwise show all other
+						.Where(x => recipeButtons.Choice == RecipeButtonsBlacklistChoice == hiddenRecipes.Contains(x.createItem.type))
+						// show only favorited items if selected
+						.Where(x => recipeButtons.Choice != RecipeButtonsFavoritesChoice || favorited.Contains(x.createItem.type))
+						// hard check if this item can be crafted from available items and their recursive products
+						.Where(x => !wasItemChecklistRetrieved || IsKnownRecursively(x, availableItemsMutable, temp, tempCache))
+						// favorites first
+						.OrderBy(x => favorited.Contains(x.createItem.type) ? 0 : 1);
+
+					recipes.Clear();
+					recipeAvailable.Clear();
+
+					if (recipeButtons.Choice == RecipeButtonsAvailableChoice)
 					{
-						threadNeedsRestart = false;
-						sortMode = threadSortMode;
-						filterMode = threadFilterMode;
-						foundItems = threadCheckListFoundItems;
+						recipes.AddRange(filteredRecipes.Where(r => IsAvailable(r)));
+						recipeAvailable.AddRange(Enumerable.Repeat(true, recipes.Count));
 					}
-
-					var availableItemsMutable = new HashSet<int>(hiddenRecipes.Concat(craftedRecipes).Concat(foundItems));
-
-					var temp = new HashSet<int>();
-					var tempCache = new Dictionary<Recipe, bool>();
-
-					int modFilterIndex = modSearchBox.ModIndex;
-
-					IEnumerable<Recipe> filteredRecipes;
-
-					void DoFiltering()
+					else
 					{
-						filteredRecipes = ItemSorter.GetRecipes(sortMode, filterMode, modFilterIndex, searchBar.Text)
-							.Where(x => x is not null)
-							// show only blacklisted recipes only if choice = 2, otherwise show all other
-							.Where(x => recipeButtons.Choice == RecipeButtonsBlacklistChoice == hiddenRecipes.Contains(x.createItem.type))
-							// show only favorited items if selected
-							.Where(x => recipeButtons.Choice != RecipeButtonsFavoritesChoice || favorited.Contains(x.createItem.type))
-							// hard check if this item can be crafted from available items and their recursive products
-							.Where(x => !wasItemChecklistRetrieved || IsKnownRecursively(x, availableItemsMutable, temp, tempCache))
-							// favorites first
-							.OrderBy(x => favorited.Contains(x.createItem.type) ? 0 : 1);
-
-						threadRecipes.Clear();
-						threadRecipeAvailable.Clear();
-
-						if (recipeButtons.Choice == RecipeButtonsAvailableChoice)
-						{
-							foreach (Recipe recipe in filteredRecipes)
-							{
-								if (IsAvailable(recipe))
-								{
-									threadRecipes.Add(recipe);
-									threadRecipeAvailable.Add(true);
-								}
-							}
-						}
-						else
-						{
-							foreach (Recipe recipe in filteredRecipes)
-							{
-								threadRecipes.Add(recipe);
-								threadRecipeAvailable.Add(IsAvailable(recipe));
-							}
-						}
-					}
-
-					if (RecursiveCraftIntegration.Enabled)
-						RecursiveCraftIntegration.RecursiveRecipes();
-
-					DoFiltering();
-
-					// now if nothing found we disable filters one by one
-					if (searchBar.Text.Length > 0)
-					{
-						if (threadRecipes.Count == 0 && hiddenRecipes.Count > 0)
-						{
-							// search hidden recipes too
-							hiddenRecipes = new HashSet<int>();
-							DoFiltering();
-						}
-
-						//if (threadRecipes.Count == 0 && filterMode != FilterMode.All) {
-						//	// any category
-						//	filterMode = FilterMode.All;
-						//	DoFiltering();
-						//}
-
-						if (threadRecipes.Count == 0 && modFilterIndex != ModSearchBox.ModIndexAll)
-						{
-							// search all mods
-							modFilterIndex = ModSearchBox.ModIndexAll;
-							DoFiltering();
-						}
-					}
-
-					// TODO is there a better way?
-					void GuttedSetSelectedRecipe(Recipe recipe, int index)
-					{
-						Recipe compound = RecursiveCraftIntegration.ApplyCompoundRecipe(recipe);
-						if (index != -1)
-							threadRecipes[index] = compound;
-
-						selectedRecipe = compound;
-						RefreshStorageItems();
-						lock (blockStorageItems)
-						{
-							blockStorageItems.Clear();
-						}
-					}
-
-					lock (recipeLock)
-					{
-						if (RecursiveCraftIntegration.Enabled)
-							if (selectedRecipe is not null)
-							{
-								// If the selected recipe is compound, replace the overridden recipe with the compound one so it shows as selected in the UI
-								if (RecursiveCraftIntegration.IsCompoundRecipe(selectedRecipe))
-								{
-									Recipe overridden = RecursiveCraftIntegration.GetOverriddenRecipe(selectedRecipe);
-									int index = threadRecipes.IndexOf(overridden);
-									if (index != -1 && threadRecipeAvailable[index])
-										GuttedSetSelectedRecipe(overridden, index);
-									else
-										GuttedSetSelectedRecipe(overridden, index);
-								}
-								// If the selectedRecipe(which isn't compound) is uncraftable but is in the available list, this means it's compound version is craftable
-								else if (!IsAvailable(selectedRecipe, false))
-								{
-									int index = threadRecipes.IndexOf(selectedRecipe);
-									if (index != -1 && threadRecipeAvailable[index])
-										GuttedSetSelectedRecipe(selectedRecipe, index);
-								}
-							}
-
-						nextRecipes = new List<Recipe>();
-						nextRecipeAvailable = new List<bool>();
-						nextRecipes.AddRange(threadRecipes);
-						nextRecipeAvailable.AddRange(threadRecipeAvailable);
-					}
-
-					lock (threadLock)
-					{
-						if (!threadNeedsRestart)
-						{
-							threadRunning = false;
-							return;
-						}
+						recipes.AddRange(filteredRecipes);
+						recipeAvailable.AddRange(recipes.AsParallel().AsOrdered().Select(r => IsAvailable(r)));
 					}
 				}
-				catch (Exception e)
+
+				if (RecursiveCraftIntegration.Enabled)
+					RecursiveCraftIntegration.RefreshRecursiveRecipes();
+
+				DoFiltering();
+
+				// now if nothing found we disable filters one by one
+				if (searchBar.Text.Length > 0)
 				{
-					Main.NewTextMultiline(e.ToString());
+					if (recipes.Count == 0 && hiddenRecipes.Count > 0)
+					{
+						// search hidden recipes too
+						hiddenRecipes = new HashSet<int>();
+						DoFiltering();
+					}
+
+					/*
+					if (recipes.Count == 0 && filterMode != FilterMode.All)
+					{
+						// any category
+						filterMode = FilterMode.All;
+						DoFiltering();
+					}
+					*/
+
+					if (recipes.Count == 0 && modFilterIndex != ModSearchBox.ModIndexAll)
+					{
+						// search all mods
+						modFilterIndex = ModSearchBox.ModIndexAll;
+						DoFiltering();
+					}
 				}
+
+				// TODO is there a better way?
+				void GuttedSetSelectedRecipe(Recipe recipe, int index)
+				{
+					Recipe compound = RecursiveCraftIntegration.ApplyCompoundRecipe(recipe);
+					if (index != -1)
+						recipes[index] = compound;
+
+					selectedRecipe = compound;
+					RefreshStorageItems();
+					lock (blockStorageItems)
+					{
+						blockStorageItems.Clear();
+					}
+				}
+
+				if (RecursiveCraftIntegration.Enabled)
+					if (selectedRecipe is not null)
+					{
+						// If the selected recipe is compound, replace the overridden recipe with the compound one so it shows as selected in the UI
+						if (RecursiveCraftIntegration.IsCompoundRecipe(selectedRecipe))
+						{
+							Recipe overridden = RecursiveCraftIntegration.GetOverriddenRecipe(selectedRecipe);
+							int index = recipes.IndexOf(overridden);
+							if (index != -1 && recipeAvailable[index])
+								GuttedSetSelectedRecipe(overridden, index);
+							else
+								GuttedSetSelectedRecipe(overridden, index);
+						}
+						// If the selectedRecipe(which isn't compound) is uncraftable but is in the available list, this means it's compound version is craftable
+						else if (!IsAvailable(selectedRecipe, false))
+						{
+							int index = recipes.IndexOf(selectedRecipe);
+							if (index != -1 && recipeAvailable[index])
+								GuttedSetSelectedRecipe(selectedRecipe, index);
+						}
+					}
+			}
+			catch (Exception e)
+			{
+				Main.NewTextMultiline(e.ToString());
+			}
 		}
 
 		private static void AnalyzeIngredients()
@@ -1352,12 +1301,12 @@ namespace MagicStorage
 			adjTiles[ModContent.TileType<Components.CraftingAccess>()] = true;
 		}
 
-		public static bool IsAvailable(Recipe recipe, bool compound = true)
+		public static bool IsAvailable(Recipe recipe, bool checkCompound = true)
 		{
-			if (RecursiveCraftIntegration.Enabled && compound)
-				recipe = RecursiveCraftIntegration.ApplyThreadCompoundRecipe(recipe);
+			if (RecursiveCraftIntegration.Enabled && checkCompound)
+				recipe = RecursiveCraftIntegration.ApplyCompoundRecipe(recipe);
 
-			if (recipe.requiredTile.TakeWhile(tile => tile != -1).Any(tile => !adjTiles[tile]))
+			if (recipe.requiredTile.Any(tile => !adjTiles[tile]))
 				return false;
 
 			lock (itemCounts)
@@ -1380,16 +1329,32 @@ namespace MagicStorage
 				}
 			}
 
+
+			bool retValue = true;
+
+			ExecuteInCraftingGuiEnvironment(() =>
+			{
+				if (retValue && !RecipeLoader.RecipeAvailable(recipe))
+					retValue = false;
+			});
+
+			return retValue;
+		}
+
+		public static void ExecuteInCraftingGuiEnvironment(Action action)
+		{
+			ArgumentNullException.ThrowIfNull(action);
+
 			lock (BlockRecipes.ActiveLock)
 			{
-				bool[] oldAdjTile = (bool[])Main.LocalPlayer.adjTile.Clone();
+				Player player = Main.LocalPlayer;
+				bool[] origAdjTile = player.adjTile;
 
 				try
 				{
-					Player player = Main.LocalPlayer;
-					for (int i = 0; i < adjTiles.Length; i++)
-						player.adjTile[i] = adjTiles[i];
+					player.adjTile = adjTiles;
 
+					// TODO: test if this allows environmental effects such as nearby water
 					if (adjWater)
 						player.adjWater = true;
 					if (adjLava)
@@ -1404,17 +1369,14 @@ namespace MagicStorage
 						player.ZoneGraveyard = true;
 
 					BlockRecipes.Active = false;
-					if (!RecipeLoader.RecipeAvailable(recipe))
-						return false;
+					action();
 				}
 				finally
 				{
 					BlockRecipes.Active = true;
-					Main.LocalPlayer.adjTile = oldAdjTile;
+					player.adjTile = origAdjTile;
 				}
 			}
-
-			return true;
 		}
 
 		private static bool PassesBlock(Recipe recipe)
@@ -1613,13 +1575,14 @@ namespace MagicStorage
 
         private static void SetSelectedRecipe(Recipe recipe)
 		{
-			if (recipe is not null)
-				StoragePlayer.LocalPlayer.SeenRecipes.Add(recipe.createItem);
+			ArgumentNullException.ThrowIfNull(recipe);
+
+			StoragePlayer.LocalPlayer.SeenRecipes.Add(recipe.createItem);
 
 			if (RecursiveCraftIntegration.Enabled)
 			{
 				int index;
-				if (RecursiveCraftIntegration.IsCompoundRecipe(selectedRecipe) && selectedRecipe != recipe)
+				if (selectedRecipe != null && RecursiveCraftIntegration.IsCompoundRecipe(selectedRecipe) && selectedRecipe != recipe)
 				{
 					Recipe overridden = RecursiveCraftIntegration.GetOverriddenRecipe(selectedRecipe);
 					if (overridden != recipe)
@@ -1679,8 +1642,11 @@ namespace MagicStorage
 
 					Recipe selected = null;
 
-					foreach (Recipe r in itemRecipes.Where(x => IsKnownRecursively(x, knownItems, recursionTree, cache)))
+					foreach (Recipe r in itemRecipes)
 					{
+						if (!IsKnownRecursively(r, knownItems, recursionTree, cache))
+							continue;
+
 						selected ??= r;
 						if (IsAvailable(r))
 						{
