@@ -1500,6 +1500,9 @@ namespace MagicStorageExtra
 
 		private static void HoverRecipe(int slot, ref int hoverSlot)
 		{
+			if (TryDepositMouseItem())
+				return;
+
 			int visualSlot = slot;
 			slot += numColumns * (int) Math.Round(scrollBar.ViewPosition);
 			if (slot < recipes.Count)
@@ -1548,6 +1551,22 @@ namespace MagicStorageExtra
 
 				hoverSlot = visualSlot;
 			}
+		}
+
+		private static bool TryDepositMouseItem()
+		{
+			Player player = Main.LocalPlayer;
+			if (MouseClicked && !Main.mouseItem.IsAir && player.itemAnimation == 0 && player.itemTime == 0)
+			{
+				if (TryDepositResult(Main.mouseItem))
+				{
+					RefreshItems();
+					Main.PlaySound(SoundID.Grab);
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		private static void SetSelectedRecipe(Recipe recipe)
@@ -1640,6 +1659,9 @@ namespace MagicStorageExtra
 
 		private static void HoverStorage(int slot, ref int hoverSlot)
 		{
+			if (TryDepositMouseItem())
+				return;
+
 			int visualSlot = slot;
 			slot += numColumns2 * (int) Math.Round(scrollBar2.ViewPosition);
 			if (slot < storageItems.Count)
@@ -1674,7 +1696,7 @@ namespace MagicStorageExtra
 			if (MouseClicked)
 			{
 				bool changed = false;
-				if (!Main.mouseItem.IsAir && player.itemAnimation == 0 && player.itemTime == 0 && result != null && Main.mouseItem.type == result.type)
+				if (!Main.mouseItem.IsAir && player.itemAnimation == 0 && player.itemTime == 0)
 				{
 					if (TryDepositResult(Main.mouseItem))
 						changed = true;
